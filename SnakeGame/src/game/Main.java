@@ -1,28 +1,15 @@
-/**
- * 
- */
 package game;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.EventQueue;
 
-/**
- * @author klach
- *
- */
 public class Main {
-
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
 
-		EventQueue.invokeLater(() ->
-		{
-			GameFrame game = new GameFrame();
-			game.setVisible(true);
-		});
-
-	}
-
+            @Override
+            public void run() {
+                new GameFrame();
+            }
+        });
+    }
 }

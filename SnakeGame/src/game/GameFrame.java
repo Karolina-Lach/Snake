@@ -2,81 +2,144 @@ package game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class GameFrame extends JFrame {
-    final private int WIDTH = 1200;
-    final private int HEIGHT = 750;
+    private ScorePanel scorePanel;
+    private GamePanel gamePanel;
+    private Thread thread;
+    private Snake snake;
+    private Board board;
+    private RulesDialog dialog;
 
-    private JPanel menuPanel;
-    private JPanel headerPanel;
-    private JPanel gamePanel;
-    private JPanel content;
+    JMenuBar menuBar;
 
-    public GameFrame()
-    {
-        menuPanel = new Menu();
-        menuPanel.setPreferredSize(new Dimension(200, 650));
+    private boolean started = false;
 
-        gamePanel = new Gameplay();
-        gamePanel.setPreferredSize(new Dimension(850, 750));
+    public GameFrame() {
+        initComponents();
+        initGame();
+        initFrame();
+    }
 
-        headerPanel = new JPanel();
-        headerPanel.setPreferredSize(new Dimension(1050, 50));
-        JLabel label = new JLabel("SNAKE");
-       // headerPanel.add(label);
+    private void initComponents() {
+        board = new Board(50,50,10);
 
-        content = new JPanel();
-        content.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
+        addKeyListener(new KeyboardHandler());
 
-        content.add(headerPanel , BorderLayout.NORTH);
-        content.add(menuPanel  , BorderLayout.EAST);
-        content.add(gamePanel, BorderLayout.CENTER);
+        scorePanel = new ScorePanel();
+        add(scorePanel, BorderLayout.CENTER);
 
-        setContentPane(content);
-        setTitle("BorderTest");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gamePanel = new GamePanel(board);
+        add(gamePanel, BorderLayout.SOUTH);
+
+        menuBar = new JMenuBar();
+        var optionsMenu = new JMenu("Opcje");
+
+        var rulesItem = new JMenuItem("Zasady");
+        var scoreItem = new JMenuItem("Top score");
+
+        rulesItem.addActionListener(event -> {
+            if(dialog == null)
+                dialog = new RulesDialog(GameFrame.this);
+            dialog.setVisible(true);
+        });
+
+        optionsMenu.add(rulesItem);
+        optionsMenu.add(scoreItem);
+        menuBar.add(optionsMenu);
+        setJMenuBar(menuBar);
+    }
+
+    private void initGame() {
+        snake = new Snake(new Cell(10,10, CellType.SNAKE_NODE));
+        Runnable r = new Game(gamePanel, scorePanel, snake, this, board);
+        thread = new Thread(r);
+    }
+
+    private void initFrame() {
         pack();
-
+        setTitle("Snake");
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+        setVisible(true);
     }
-}
 
-class Menu extends JPanel
-{
-    Menu()
-    {
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        Box box = new Box(BoxLayout.Y_AXIS);
-        add(box);
-
-        JButton button = new JButton("Top Score");
-        button.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        button.setPreferredSize(new Dimension(200, 70));
-
-        JButton button1 = new JButton("Zasady");
-        button1.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        button1.setPreferredSize(new Dimension(200, 70));
-
-        add( Box.createVerticalStrut(100) );
-        //add(menuText);
-        add( Box.createVerticalStrut(10) );
-        add(button);
-        add( Box.createVerticalStrut(10) );
-        add(button1);
-        add( Box.createVerticalStrut(10) );
-
+    public void newGame() {
+        started = true;
+        thread.start();
     }
-}
 
-class Header extends JPanel
-{
-    Header()
-    {
-        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-        Box box = new Box(BoxLayout.X_AXIS);
-        add(box);
+    public void gameOver() {
+        int returnValue = JOptionPane.showConfirmDialog(this,
+                "Do you want to start a new game?", "GAME OVER!", JOptionPane
+                        .OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
-        JLabel label = new JLabel("SNAKE");
-        label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        add(label);
+        switch (returnValue) {
+            case JOptionPane.OK_OPTION:
+                started = false;
+                snake = new Snake(new Cell(10,10, CellType.SNAKE_NODE));
+                board.clearBoard();
+                scorePanel.clear();
+                scorePanel.repaint();
+                gamePanel.repaint();
+                Runnable r = new Game(gamePanel, scorePanel, snake, this, board);
+                thread = null;
+                thread = new Thread(r);
+                break;
+
+            case JOptionPane.CANCEL_OPTION:
+                System.exit(0);
+                break;
+            default:
+                JOptionPane.showMessageDialog(getParent(),
+                        "Something went wrong :( /n Please relunch app");
+                break;
+        }
     }
+
+    
+
+    private class KeyboardHandler extends KeyAdapter {
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_UP) {
+                if (snake.isDown()) return;
+                if (!started) newGame();
+                if (snake != null) {
+                    snake.moveUp();
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                if (snake.isUp()) return;
+                if (!started) newGame();
+                if (snake != null) {
+                    snake.moveDown();;
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                if (snake.isRight()) return;
+                if (!started) newGame();
+                if (snake != null) {
+                    snake.moveLeft();
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                if (snake.isLeft()) return;
+                if (!started) newGame();
+                if (snake != null) {
+                    snake.moveRight();
+                }
+            }
+        }
+    }
+
 }
