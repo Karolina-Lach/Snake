@@ -1,12 +1,17 @@
 package game;
-
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class GamePanel extends JPanel {
     private static final int WIDTH = 500, HEIGHT = 500;
-    
-    private Board board;
+    private static final int ROW_COUNT = HEIGHT / 10;
+    private static final int COL_COUNT = WIDTH / 10;
+
+    Board board;
     /**
      * Constructs the game field, which is the rectangular area where snake can
      * move
@@ -36,7 +41,12 @@ public class GamePanel extends JPanel {
                     //g.clearRect(i * board.getCellSize(),j * board.getCellSize(),board.getCellSize(), board.getCellSize());
                     g.setColor(Color.green);
                     g.fillRect(i * board.getCellSize(), j * board.getCellSize(), board.getCellSize(), board.getCellSize());
+                } else if (board.getCells()[i][j].getCellType() == CellType.FROG) {
+                    //g.clearRect(i * board.getCellSize(),j * board.getCellSize(),board.getCellSize(), board.getCellSize());
+                    g.setColor(new Color(67, 124, 36));
+                    g.fillRect(i * board.getCellSize(), j * board.getCellSize(), board.getCellSize(), board.getCellSize());
                 }
+
             }
         }
     }

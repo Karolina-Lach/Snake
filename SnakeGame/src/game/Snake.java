@@ -1,11 +1,13 @@
 package game;
-
 import java.util.ArrayList;
 
 public class Snake {
     private Cell[] body = new Cell[250];
     private int snakeSize = 1;
     private Cell head;
+    public volatile boolean hasBeenCheckedForFood;
+    public volatile boolean hasBeenCheckedForCrash;
+    public volatile boolean isCrashed;
 
     private int points = 0;
 
@@ -98,7 +100,7 @@ public class Snake {
             move(nextCell, board);
         }
 
-        System.out.println(head.getCol() + "   " + head.getRow());
+        //System.out.println(head.getCol() + "   " + head.getRow());
     }
 
     public void moveRight() {
@@ -128,11 +130,15 @@ public class Snake {
         for(int i = 1; i < snakeSize; i++) {
             if(body[0].getRow() == body[i].getRow() && body[0].getCol() == body[i].getCol()) {
                 if(i != snakeSize - 1) {
+                    hasBeenCheckedForCrash = true;
+                    isCrashed = true;
                     return true;
                 }
             }
         }
 
+        hasBeenCheckedForCrash= true;
+        isCrashed = false;
         return false;
     }
 
@@ -147,13 +153,34 @@ public class Snake {
                 return true;
             }
         }
+
+        return false;
+    }
+
+    public synchronized boolean checkFrog(ArrayList<Frog> frogs, ScorePanel panel) {
+        for(Frog frog : frogs) {
+            if(body[0].getRow() == frog.getHead().getRow() && body[0].getCol() == frog.getHead().getCol()) {
+                grow();
+                panel.addPoints();
+                //frogs.remove(frog);
+                System.out.println("yum!");
+                hasBeenCheckedForFood = true;
+                return true;
+            }
+        }
+
+        hasBeenCheckedForFood = true;
         return false;
     }
 
     public boolean checkBorder(int rows, int cols) {
         if(head.getRow() < 0 || head.getRow() > rows || head.getCol() < 0 || head.getCol() > cols) {
+            hasBeenCheckedForCrash = true;
+            isCrashed = true;
             return true;
         }
+        hasBeenCheckedForCrash = true;
+        isCrashed = false;
         return false;
     }
     public void setBody(Cell[] body)

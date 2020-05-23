@@ -1,17 +1,20 @@
 package game;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
 public class GameFrame extends JFrame {
     private ScorePanel scorePanel;
     private GamePanel gamePanel;
-    private Thread thread;
-    private Snake snake;
-    private Board board;
+    private Thread snakeThread;
+    private Thread frogThread;
+    private volatile Snake snake;
+    private volatile Board board;
+    private volatile ArrayList<Cell> apples;
+    private volatile ArrayList<Frog> frogs;
     private RulesDialog dialog;
 
     JMenuBar menuBar;
@@ -22,6 +25,7 @@ public class GameFrame extends JFrame {
         initComponents();
         initGame();
         initFrame();
+
     }
 
     private void initComponents() {
@@ -56,8 +60,13 @@ public class GameFrame extends JFrame {
 
     private void initGame() {
         snake = new Snake(new Cell(10,10, CellType.SNAKE_NODE));
-        Runnable r = new Game(gamePanel, scorePanel, snake, this, board);
-        thread = new Thread(r);
+        apples = new ArrayList<>();
+        frogs = new ArrayList<>();
+
+        Runnable r = new Game(gamePanel, scorePanel, snake, apples, frogs, this, board);
+        snakeThread = new Thread(r, "snake");
+        Runnable r1 = new Game(gamePanel, scorePanel, snake, apples, frogs,this, board);
+        frogThread = new Thread(r1, "frog");
     }
 
     private void initFrame() {
@@ -71,38 +80,60 @@ public class GameFrame extends JFrame {
 
     public void newGame() {
         started = true;
-        thread.start();
+        snakeThread.start();
+        frogThread.start();
     }
 
     public void gameOver() {
-        int returnValue = JOptionPane.showConfirmDialog(this,
-                "Do you want to start a new game?", "GAME OVER!", JOptionPane
-                        .OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        try
+        {
+            System.out.println("over?");
 
-        switch (returnValue) {
-            case JOptionPane.OK_OPTION:
-                started = false;
-                snake = new Snake(new Cell(10,10, CellType.SNAKE_NODE));
-                board.clearBoard();
-                scorePanel.clear();
-                scorePanel.repaint();
-                gamePanel.repaint();
-                Runnable r = new Game(gamePanel, scorePanel, snake, this, board);
-                thread = null;
-                thread = new Thread(r);
-                break;
+            System.out.println("over.");
+            int returnValue = JOptionPane.showConfirmDialog(this,
+                    "Do you want to start a new game?", "GAME OVER!", JOptionPane
+                            .OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
-            case JOptionPane.CANCEL_OPTION:
-                System.exit(0);
-                break;
-            default:
-                JOptionPane.showMessageDialog(getParent(),
-                        "Something went wrong :( /n Please relunch app");
-                break;
+            switch (returnValue) {
+                case JOptionPane.OK_OPTION:
+                    snakeThread.join();
+                    frogThread.join();
+                    System.out.println("slndsd");
+                    snakeThread = null;
+                    frogThread = null;
+
+                    started = false;
+                    snake = new Snake(new Cell(10,10, CellType.SNAKE_NODE));
+                    board.clearBoard();
+                    scorePanel.clear();
+                    scorePanel.repaint();
+                    gamePanel.repaint();
+
+                    Runnable r = new Game(gamePanel, scorePanel, snake, apples, frogs, this, board);
+
+                    snakeThread = new Thread(r, "snake");
+
+                    Runnable r1 = new Game(gamePanel, scorePanel, snake, apples, frogs, this, board);
+
+                    frogThread = new Thread(r1, "frog");
+
+                    newGame();
+                    break;
+
+                case JOptionPane.CANCEL_OPTION:
+                    System.exit(0);
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(getParent(),
+                            "Something went wrong :( /n Please relunch app");
+                    break;
+            }
+        }
+        catch (Exception e)
+            {
+                System.out.println("Interrupted");
         }
     }
-
-    
 
     private class KeyboardHandler extends KeyAdapter {
 
@@ -141,5 +172,5 @@ public class GameFrame extends JFrame {
             }
         }
     }
-
 }
+
