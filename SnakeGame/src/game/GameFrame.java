@@ -5,7 +5,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
+/* Klasa GameFrame
+ * 
+ * G³ówna frame gry
+ * Rozpoczyna w¹tek gry, zatrzymuje w¹tek gry, jeœli pojawi siê b³¹d
+ * 
+ */
 public class GameFrame extends JFrame {
     private ScorePanel scorePanel;
     private GamePanel gamePanel;
@@ -28,9 +33,9 @@ public class GameFrame extends JFrame {
         board = new Board(50,50,10);
 
         setLayout(new BorderLayout());
-        addKeyListener(new KeyboardHandler());
+        addKeyListener(new KeyboardHandler());      // dodaje listener wejœcia u¿ytkownika
 
-        scorePanel = new ScorePanel();
+        scorePanel = new ScorePanel();				
         add(scorePanel, BorderLayout.CENTER);
 
         gamePanel = new GamePanel(board);
@@ -39,7 +44,7 @@ public class GameFrame extends JFrame {
         menuBar = new JMenuBar();
         var optionsMenu = new JMenu("Opcje");
 
-        var rulesItem = new JMenuItem("Zasady");
+        var rulesItem = new JMenuItem("Zasady");				
         var scoreItem = new JMenuItem("Top score");
 
         rulesItem.addActionListener(event -> {
@@ -74,12 +79,18 @@ public class GameFrame extends JFrame {
         thread.start();
     }
 
+    /*
+     * Jeœli gra skoñczona - pokazuje siê okienko
+     */
     public void gameOver() {
         int returnValue = JOptionPane.showConfirmDialog(this,
                 "Do you want to start a new game?", "GAME OVER!", JOptionPane
                         .OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
         switch (returnValue) {
+        /*
+         * Jeœli gramy od nowa
+         */
             case JOptionPane.OK_OPTION:
                 started = false;
                 snake = new Snake(new Cell(10,10, CellType.SNAKE_NODE));
@@ -103,7 +114,9 @@ public class GameFrame extends JFrame {
     }
 
     
-
+/*
+ * Przetwarza wejœcia u¿ytkownika
+ */
     private class KeyboardHandler extends KeyAdapter {
 
         @Override

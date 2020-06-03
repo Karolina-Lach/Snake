@@ -2,12 +2,13 @@ package game;
 
 import java.util.ArrayList;
 
-public class Snake {
+public class Snake implements MovableObject {
     private Cell[] body = new Cell[250];
     private int snakeSize = 1;
     private Cell head;
-
-    private int points = 0;
+    public volatile boolean hasBeenCheckedForFood;
+    public volatile boolean hasBeenCheckedForCrash;
+    public volatile boolean isCrashed;
 
     private boolean right, left, up, down;
 
@@ -69,9 +70,8 @@ public class Snake {
         snakeSize++;
     }
 
-    public void move(Cell nextCell, Board board)
+    public void move(Cell nextCell)
     {
-        Cell tail = body[snakeSize-1];
         for(int i = snakeSize-1; i >0; i--)
             body[i] = body[i-1];
         body[0] = nextCell;
@@ -80,25 +80,25 @@ public class Snake {
         //board.setCell(head.getRow(), head.getCol(), head.getCellType());
     }
 
-    public void update(Board board) {
+    public void update() {
         if(isRight()) {
             Cell nextCell = new Cell(head.getRow()+1, head.getCol(), CellType.SNAKE_NODE);
-            move(nextCell, board);
+            move(nextCell);
         }
         if(isLeft()) {
             Cell nextCell = new Cell(head.getRow()-1, head.getCol(), CellType.SNAKE_NODE);
-            move(nextCell, board);
+            move(nextCell);
         }
         if(isUp()) {
             Cell nextCell = new Cell(head.getRow(), head.getCol()-1, CellType.SNAKE_NODE);
-            move(nextCell, board);
+            move(nextCell);
         }
         if(isDown()) {
             Cell nextCell = new Cell(head.getRow(), head.getCol()+1, CellType.SNAKE_NODE);
-            move(nextCell, board);
+            move(nextCell);
         }
 
-        System.out.println(head.getCol() + "   " + head.getRow());
+        //System.out.println(head.getCol() + "   " + head.getRow());
     }
 
     public void moveRight() {
@@ -128,11 +128,15 @@ public class Snake {
         for(int i = 1; i < snakeSize; i++) {
             if(body[0].getRow() == body[i].getRow() && body[0].getCol() == body[i].getCol()) {
                 if(i != snakeSize - 1) {
+                    hasBeenCheckedForCrash = true;
+                    isCrashed = true;
                     return true;
                 }
             }
         }
 
+        hasBeenCheckedForCrash= true;
+        isCrashed = false;
         return false;
     }
 
@@ -147,13 +151,33 @@ public class Snake {
                 return true;
             }
         }
+
+        return false;
+    }
+
+    public  boolean checkFrog(Frog frog, ScorePanel panel) {
+        
+            if(body[0].getRow() == frog.getHead().getRow() && body[0].getCol() == frog.getHead().getCol()) {
+                grow();
+                panel.addPoints();
+                
+                hasBeenCheckedForFood = true;
+                return true;
+            }
+        
+
+        hasBeenCheckedForFood = true;
         return false;
     }
 
     public boolean checkBorder(int rows, int cols) {
         if(head.getRow() < 0 || head.getRow() > rows || head.getCol() < 0 || head.getCol() > cols) {
+            hasBeenCheckedForCrash = true;
+            isCrashed = true;
             return true;
         }
+        hasBeenCheckedForCrash = true;
+        isCrashed = false;
         return false;
     }
     public void setBody(Cell[] body)

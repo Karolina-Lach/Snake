@@ -3,6 +3,16 @@ package game;
 import javax.swing.*;
 import java.awt.*;
 
+/*
+ * Klasa panel która rysuje poszczególne elementy
+ * 
+ * Klasa Board sk³ada siê z tablicy dwuwymiarowej, w której zapisywane s¹ komórki o poszczególnych typach:
+ *  EMPTY,
+    FOOD,
+    SNAKE_NODE,
+    FROG
+    Na podstawie typu komórka wype³niana jest odpowiednim kolorem
+ */
 public class GamePanel extends JPanel {
     private static final int WIDTH = 500, HEIGHT = 500;
     
@@ -35,6 +45,10 @@ public class GamePanel extends JPanel {
                 } else if (board.getCells()[i][j].getCellType() == CellType.SNAKE_NODE) {
                     //g.clearRect(i * board.getCellSize(),j * board.getCellSize(),board.getCellSize(), board.getCellSize());
                     g.setColor(Color.green);
+                    g.fillRect(i * board.getCellSize(), j * board.getCellSize(), board.getCellSize(), board.getCellSize());
+                } else if (board.getCells()[i][j].getCellType() == CellType.FROG) {
+                    //g.clearRect(i * board.getCellSize(),j * board.getCellSize(),board.getCellSize(), board.getCellSize());
+                    g.setColor(new Color(67, 124, 36));
                     g.fillRect(i * board.getCellSize(), j * board.getCellSize(), board.getCellSize(), board.getCellSize());
                 }
             }
